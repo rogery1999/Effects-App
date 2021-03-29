@@ -20,6 +20,7 @@ export class NavbarComponent implements OnInit {
   buscar(){
     const validId = this.inputText.trim();
     if(validId.length === 0){ return; }
+    this.inputText = '';
     this.router.navigate(["/usuario", validId]);
   }
 
