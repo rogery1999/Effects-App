@@ -1,32 +1,40 @@
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { User } from 'src/app/models/user.model';
-import { UsuarioService } from '../../services/usuario.service';
+import { AppState } from '../../store/app.reducers';
+import { cargarUsuarios } from '../../store/actions/usuarios.actions';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-lista',
   templateUrl: './lista.component.html',
   styleUrls: ['./lista.component.css']
 })
-export class ListaComponent implements OnInit {
+export class ListaComponent implements OnInit, OnDestroy {
 
   usuarios: User[] = [];
+  usuariosSubs!: Subscription;
+  loading: boolean = false;
+  error: any;
 
   constructor(
-    private us: UsuarioService
+    private store: Store<AppState>
   ) { }
 
   ngOnInit(): void {
-    this.us.getAllUser()
-    .subscribe(
-      response => {
-        this.usuarios = [...response.data];
-        console.log(this.usuarios);
-      },
-      error => {
-        console.error(error);
-      }
-    );
+    this.store.dispatch( cargarUsuarios() );
+    this.usuariosSubs = this.store.select('usuarios')
+      .subscribe(
+        ({users, loading, error}) => {
+          this.loading = loading;
+          this.error = error;
+          this.usuarios = [...users];
+        }
+      );
+  }
+
+  ngOnDestroy(): void {
+    this.usuariosSubs.unsubscribe();
   }
 
 }
